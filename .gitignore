@@ -3,8 +3,8 @@
 node_modules/
 BE/node_modules/
 FE/node_modules/
-package-lock.json
-yarn.lock
+# package-lock.json
+# yarn.lock
 
 # Environment variables
 .env
