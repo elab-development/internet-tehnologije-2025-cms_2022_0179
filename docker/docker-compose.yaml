@@ -15,6 +15,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - cms_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -23,16 +28,20 @@ services:
     container_name: cms_backend
     restart: always
     environment:
-      DATABASE_URL: postgresql://cms_user:cms_password@db:5432/cms_db
+      DATABASE_URL: postgresql://postgres:postgres@db:5433/cms
       JWT_SECRET: your_jwt_secret_key_change_in_production
       PORT: 5000
+      NODE_ENV: development
     ports:
       - "5000:5000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    volumes:
+      - ../BE:/app
+      - /app/node_modules
     networks:
       - cms_network
-    command: npm run dev
 
   frontend:
     build:
@@ -44,9 +53,13 @@ services:
       VITE_API_URL: http://localhost:5000/api
     ports:
       - "3000:3000"
+    volumes:
+      - ../FE:/app
+      - /app/node_modules
     networks:
       - cms_network
-    command: npm run dev
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
