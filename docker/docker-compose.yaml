@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: cms_db
+    restart: always
+    environment:
+      POSTGRES_DB: cms
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cms_network
+
+  backend:
+    build:
+      context: ../BE
+      dockerfile: Dockerfile
+    container_name: cms_backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://cms_user:cms_password@db:5432/cms_db
+      JWT_SECRET: your_jwt_secret_key_change_in_production
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    networks:
+      - cms_network
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ../FE
+      dockerfile: Dockerfile
+    container_name: cms_frontend
+    restart: always
+    environment:
+      VITE_API_URL: http://localhost:5000/api
+    ports:
+      - "3000:3000"
+    networks:
+      - cms_network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+
+networks:
+  cms_network:
+    driver: bridge
