@@ -14,7 +14,8 @@ app.get('/', (req, res) => {
     endpoints: {
       sites: '/api/sites',
       pages: '/api/pages',
-      media: '/api/media'
+      media: '/api/media',
+      comments: '/api/comments'
     }
   });
 });
@@ -22,14 +23,17 @@ app.get('/', (req, res) => {
 const siteRoutes = require('./routes/sites');
 const pageRoutes = require('./routes/pages');
 const mediaRoutes = require('./routes/media');
+const commentRoutes = require('./routes/comments');
 
 console.log('Sites:', typeof siteRoutes);
 console.log('Pages:', typeof pageRoutes);
 console.log('Media:', typeof mediaRoutes);
+console.log('Comments:', typeof commentRoutes);
 
 app.use('/api/sites', siteRoutes);
 app.use('/api/pages', pageRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/comments', commentRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
@@ -37,4 +41,5 @@ app.listen(PORT, () => {
   console.log('  - /api/sites');
   console.log('  - /api/pages');
   console.log('  - /api/media');
+  console.log('  - /api/comments');
 });
