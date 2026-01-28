@@ -1,21 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const pageController = require('../controllers/pageController');
-
-router.get('/site/:siteId', pageController.getPagesBySite);
+const { authMiddleware } = require('../middleware/auth');
 
 router.get('/public/:siteSlug', pageController.getPublishedPages);
-
-router.get('/:id', pageController.getPageById);
-
 router.get('/:siteSlug/:pageSlug', pageController.getPageBySlug);
 
-router.post('/', pageController.createPage);
-
-router.put('/:id', pageController.updatePage);
-
-router.delete('/:id', pageController.deletePage);
-
-router.post('/:id/publish', pageController.publishPage);
+router.get('/site/:siteId', authMiddleware, pageController.getPagesBySite);
+router.get('/:id', authMiddleware, pageController.getPageById);
+router.post('/', authMiddleware, pageController.createPage);
+router.put('/:id', authMiddleware, pageController.updatePage);
+router.delete('/:id', authMiddleware, pageController.deletePage);
+router.post('/:id/publish', authMiddleware, pageController.publishPage);
 
 module.exports = router;

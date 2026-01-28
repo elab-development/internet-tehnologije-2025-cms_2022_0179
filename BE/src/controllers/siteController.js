@@ -23,7 +23,10 @@ exports.getSiteBySlug = async (req, res) => {
 
 exports.createSite = async (req, res) => {
     try {
-        const { owner_id, name, slug, template } = req.body;
+        const { name, slug, template } = req.body;
+
+        const owner_id = req.user.userId;
+
         const site = await Site.createSite(owner_id, name, slug, template);
         res.status(201).json(site);
     } catch (error) {
@@ -34,10 +37,18 @@ exports.createSite = async (req, res) => {
 exports.updateSite = async (req, res) => {
     try {
         const { name, template } = req.body;
-        const site = await Site.updateSite(req.params.id.trim(), name, template);
-        if (!site) {
+        const { id } = req.params;
+
+        const existingSite = await Site.getSiteById(id);
+        if (!existingSite) {
             return res.status(404).json({ error: 'Site not found' });
         }
+
+        if (existingSite.owner_id !== req.user.userId && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Not authorized to update this site' });
+        }
+
+        const site = await Site.updateSite(id, name, template);
         res.json(site);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -46,7 +57,18 @@ exports.updateSite = async (req, res) => {
 
 exports.deleteSite = async (req, res) => {
     try {
-        await Site.deleteSite(req.params.id.trim());
+        const { id } = req.params;
+
+        const existingSite = await Site.getSiteById(id);
+        if (!existingSite) {
+            return res.status(404).json({ error: 'Site not found' });
+        }
+
+        if (existingSite.owner_id !== req.user.userId && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Not authorized to delete this site' });
+        }
+
+        await Site.deleteSite(id);
         res.json({ message: 'Site deleted' });
     } catch (error) {
         res.status(500).json({ error: error.message });
