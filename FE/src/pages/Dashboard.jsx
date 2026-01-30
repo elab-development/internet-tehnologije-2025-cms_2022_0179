@@ -14,7 +14,8 @@ function Dashboard({ user }) {
   const loadSites = async () => {
     try {
       const data = await sitesAPI.getAll();
-      setSites(data);
+      const userSites = data.filter(site => site.owner_id === user.id);
+      setSites(userSites);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -57,7 +58,7 @@ function Dashboard({ user }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sites.map((site) => (
-            <div key={site.id} className="border rounded-lg p-6">
+            <div key={site.id} className="border rounded-lg p-6 bg-white hover:shadow-lg transition">
               <h2 className="text-xl font-bold mb-2">{site.name}</h2>
               <p className="text-gray-600 text-sm mb-4">
                 Template: {site.template}

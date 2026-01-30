@@ -5,11 +5,11 @@ async function getAllSites() {
     return result.rows;
 }
 
-/*
+
 async function getSiteById(id) {
     const result = await pool.query('SELECT * FROM sites WHERE id = $1', [id]);
     return result.rows[0];
-}*/
+}
 
 async function getSiteBySlug(slug) {
     const result = await pool.query('SELECT * FROM sites WHERE slug = $1', [slug]);
@@ -38,7 +38,7 @@ async function deleteSite(id) {
 
 module.exports = {
     getAllSites,
-    /*getSiteById, */
+    getSiteById, 
     getSiteBySlug,
     createSite,
     updateSite,

@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import CreateSite from './pages/CreateSite';
+import SitePages from './pages/SitePages';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -45,6 +47,24 @@ function App() {
             element={
               <ProtectedRoute user={user}>
                 <Dashboard user={user} />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/sites/new" 
+            element={
+              <ProtectedRoute user={user}>
+                <CreateSite />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/sites/:siteId/pages" 
+            element={
+              <ProtectedRoute user={user}>
+                <SitePages user={user} />
               </ProtectedRoute>
             } 
           />
