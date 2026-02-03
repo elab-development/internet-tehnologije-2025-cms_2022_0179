@@ -10,6 +10,8 @@ import CreateSite from './pages/CreateSite';
 import SitePages from './pages/SitePages';
 import CreatePage from './pages/CreatePage';
 import EditPage from './pages/EditPage';
+import PublicSite from './pages/PublicSite';
+import PublicPage from './pages/PublicPage';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -88,7 +90,9 @@ function App() {
                     </ProtectedRoute>
                 }
             />
-
+            {/* Public Routes */}
+            <Route path="/sites/:slug" element={<PublicSite />} />
+            <Route path="/sites/:siteSlug/:pageSlug" element={<PublicPage />} />
         </Routes>
       </div>
     </BrowserRouter>
