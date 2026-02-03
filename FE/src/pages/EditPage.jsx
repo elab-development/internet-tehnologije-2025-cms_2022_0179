@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { pagesAPI } from '../utils/api';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
+import SuccessMessage from '../components/SuccessMessage';
 
 function EditPage() {
     const { id } = useParams();
@@ -15,6 +18,7 @@ function EditPage() {
     });
     const [showPreview, setShowPreview] = useState(false);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
@@ -50,11 +54,12 @@ function EditPage() {
     const handleSave = async (e) => {
         e.preventDefault();
         setError('');
+        setSuccess('');
         setSaving(true);
 
         try {
             await pagesAPI.update(id, formData);
-            alert('Page saved successfully!');
+            setSuccess('✓ Changes saved successfully!');
         } catch (err) {
             setError(err.message);
         } finally {
@@ -63,51 +68,57 @@ function EditPage() {
     };
 
     const handlePublish = async () => {
+        setError('');
+        setSuccess('');
+
         try {
             await pagesAPI.publish(id);
             setFormData({ ...formData, status: 'published' });
-            alert('Page published!');
+            setSuccess('✓ Page published successfully!');
         } catch (err) {
             setError(err.message);
         }
     };
 
     const handleUnpublish = async () => {
+        setError('');
+        setSuccess('');
+
         try {
             await pagesAPI.update(id, { ...formData, status: 'draft' });
             setFormData({ ...formData, status: 'draft' });
-            alert('Page unpublished!');
+            setSuccess('✓ Page unpublished successfully!');
         } catch (err) {
             setError(err.message);
         }
     };
 
     if (loading) {
-        return <div className="text-center mt-20">Loading...</div>;
+        return <LoadingSpinner message="Loading page..." />;
     }
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold">Edit Page</h1>
                 <div className="flex gap-2">
                     <button
                         onClick={() => setShowPreview(!showPreview)}
-                        className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+                        className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 transition"
                     >
                         {showPreview ? 'Hide Preview' : 'Show Preview'}
                     </button>
                     {formData.status === 'draft' ? (
                         <button
                             onClick={handlePublish}
-                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
                         >
                             Publish
                         </button>
                     ) : (
                         <button
                             onClick={handleUnpublish}
-                            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition"
                         >
                             Unpublish
                         </button>
@@ -115,13 +126,10 @@ function EditPage() {
                 </div>
             </div>
 
-            {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {error}
-                </div>
-            )}
+            <SuccessMessage message={success} onClose={() => setSuccess('')} />
+            <ErrorMessage message={error} onClose={() => setError('')} />
 
-            <div className={`grid ${showPreview ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+            <div className={`grid ${showPreview ? 'grid-cols-2' : 'grid-cols-1'} gap-6`}>
                 {/* Editor */}
                 <div>
                     <form onSubmit={handleSave} className="space-y-4">
@@ -180,6 +188,7 @@ function EditPage() {
                                 value={formData.content}
                                 onChange={handleChange}
                                 rows="20"
+                                placeholder="<h1>Your content here</h1><p>Write HTML...</p>"
                                 className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                             />
                         </div>
@@ -188,16 +197,16 @@ function EditPage() {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
+                                className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 transition"
                             >
-                                {saving ? 'Saving...' : 'Save Changes'}
+                                {saving ? 'Saving...' : '💾 Save Changes'}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => navigate(-1)}
-                                className="bg-gray-200 px-6 py-2 rounded hover:bg-gray-300"
+                                className="bg-gray-200 px-6 py-2 rounded hover:bg-gray-300 transition"
                             >
-                                Back
+                                ← Back
                             </button>
                         </div>
                     </form>
@@ -205,14 +214,20 @@ function EditPage() {
 
                 {/* Preview */}
                 {showPreview && (
-                    <div className="border rounded-lg p-6 bg-white">
-                        <h2 className="text-2xl font-bold mb-4 text-gray-700">Preview</h2>
+                    <div className="border rounded-lg p-6 bg-white sticky top-4" style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
+                        <h2 className="text-lg font-bold mb-4 text-gray-700 border-b pb-2">
+                            Live Preview
+                        </h2>
                         <div className="border-t pt-4">
-                            <h1 className="text-3xl font-bold mb-4">{formData.title}</h1>
-                            <div
-                                className="prose max-w-none"
-                                dangerouslySetInnerHTML={{ __html: formData.content }}
-                            />
+                            <h1 className="text-3xl font-bold mb-4">{formData.title || 'Untitled'}</h1>
+                            {formData.content ? (
+                                <div
+                                    className="prose max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: formData.content }}
+                                />
+                            ) : (
+                                <p className="text-gray-400 italic">No content yet. Start writing to see preview.</p>
+                            )}
                         </div>
                     </div>
                 )}
