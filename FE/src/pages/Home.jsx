@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { sitesAPI } from '../utils/api';
-import LoadingSpinner from '../components/LoadingSpinner';
-import ErrorMessage from '../components/ErrorMessage';
-import EmptyState from '../components/EmptyState';
 
 function Home() {
     const [sites, setSites] = useState([]);
@@ -26,52 +23,95 @@ function Home() {
     };
 
     if (loading) {
-        return <LoadingSpinner message="Loading sites..." />;
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-xl text-gray-600">Loading sites...</div>
+            </div>
+        );
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="text-center mb-12">
-                <h1 className="text-5xl font-bold mb-4">Explore Sites</h1>
-                <p className="text-xl text-gray-600">
-                    Discover websites created by our community
-                </p>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+            {/* Hero Section */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
+                <div className="max-w-7xl mx-auto px-4 text-center">
+                    <h1 className="text-5xl font-bold mb-4">Explore Amazing Sites</h1>
+                    <p className="text-xl opacity-90">
+                        Discover websites created by our community
+                    </p>
+                </div>
             </div>
 
-            <ErrorMessage message={error} onClose={() => setError('')} />
+            <div className="max-w-7xl mx-auto px-4 py-12">
+                {error && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                        {error}
+                    </div>
+                )}
 
-            {sites.length === 0 ? (
-                <EmptyState
-                    icon="🌍"
-                    title="No sites yet"
-                    message="Be the first to create a site and share your story with the world!"
-                    actionText="Create Your First Site"
-                    actionLink="/register"
-                />
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {sites.map((site) => (
+                {sites.length === 0 ? (
+                    <div className="text-center py-20">
+                        <div className="text-6xl mb-4">🌍</div>
+                        <h3 className="text-2xl font-bold text-gray-700 mb-2">No sites yet</h3>
+                        <p className="text-gray-600 mb-6">Be the first to create a site!</p>
                         <Link
-                            key={site.id}
-                            to={`/sites/${site.slug}`}
-                            className="block border rounded-lg p-6 bg-white hover:shadow-xl transition-shadow"
+                            to="/register"
+                            className="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition font-semibold"
                         >
-                            <div className="flex justify-between items-start mb-3">
-                                <h2 className="text-xl font-bold">{site.name}</h2>
-                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                  {site.template}
-                </span>
-                            </div>
-                            <p className="text-gray-600 text-sm mb-3">
-                                By {site.owner_name || 'Anonymous'}
-                            </p>
-                            <p className="text-gray-500 text-sm">
-                                Created {new Date(site.created_at).toLocaleDateString()}
-                            </p>
+                            Get Started
                         </Link>
-                    ))}
-                </div>
-            )}
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {sites.map((site) => (
+                            <Link
+                                key={site.id}
+                                to={`/sites/${site.slug}`}
+                                className="group"
+                            >
+                                <div className="bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2">
+                                    {/* Card Header with Gradient */}
+                                    <div className="h-40 bg-gradient-to-br from-blue-400 to-purple-500 relative">
+                                        <div className="absolute top-4 right-4">
+                      <span className="bg-white/90 backdrop-blur-sm text-blue-600 text-xs font-semibold px-3 py-1 rounded-full">
+                        {site.template}
+                      </span>
+                                        </div>
+                                        <div className="absolute bottom-4 left-4">
+                                            <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1">
+                                                <p className="text-xs text-gray-600">Created by</p>
+                                                <p className="text-sm font-semibold text-gray-800">
+                                                    {site.owner_name || 'Anonymous'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Card Body */}
+                                    <div className="p-6">
+                                        <h2 className="text-2xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition">
+                                            {site.name}
+                                        </h2>
+                                        <p className="text-gray-500 text-sm mb-4">
+                                            📅 {new Date(site.created_at).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                        </p>
+                                        <div className="flex items-center text-blue-500 font-semibold group-hover:text-blue-700 transition">
+                                            <span>View Site</span>
+                                            <svg className="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

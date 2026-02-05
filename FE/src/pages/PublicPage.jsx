@@ -8,6 +8,7 @@ function PublicPage() {
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [user, setUser] = useState(null);
 
     const [commentForm, setCommentForm] = useState({
         author_name: '',
@@ -17,6 +18,11 @@ function PublicPage() {
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
+        // Check if user is logged in
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            setUser(JSON.parse(savedUser));
+        }
         loadPage();
     }, [siteSlug, pageSlug]);
 
@@ -25,7 +31,6 @@ function PublicPage() {
             const pageData = await pagesAPI.getBySlug(siteSlug, pageSlug);
             setPage(pageData);
 
-            // Load comments
             const commentsData = await commentsAPI.getByPage(pageData.id);
             setComments(commentsData);
         } catch (err) {
@@ -52,11 +57,9 @@ function PublicPage() {
                 ...commentForm
             });
 
-            // Reload comments
             const commentsData = await commentsAPI.getByPage(page.id);
             setComments(commentsData);
 
-            // Reset form
             setCommentForm({
                 author_name: '',
                 author_email: '',
@@ -68,6 +71,17 @@ function PublicPage() {
             alert('Error adding comment: ' + err.message);
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleDeleteComment = async (commentId) => {
+        if (!window.confirm('Delete this comment?')) return;
+
+        try {
+            await commentsAPI.delete(commentId);
+            setComments(comments.filter(c => c.id !== commentId));
+        } catch (err) {
+            alert('Error deleting comment: ' + err.message);
         }
     };
 
@@ -90,7 +104,6 @@ function PublicPage() {
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
-            {/* Page Content */}
             <article className="mb-12">
                 <Link to={`/sites/${siteSlug}`} className="text-blue-500 hover:underline mb-4 inline-block">
                     ← Back to site
@@ -112,13 +125,12 @@ function PublicPage() {
             <div className="border-t pt-8">
                 <h2 className="text-2xl font-bold mb-6">Comments ({comments.length})</h2>
 
-                {/* Existing Comments */}
                 <div className="space-y-4 mb-8">
                     {comments.length === 0 ? (
                         <p className="text-gray-600">No comments yet. Be the first to comment!</p>
                     ) : (
                         comments.map((comment) => (
-                            <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
+                            <div key={comment.id} className="bg-gray-50 rounded-lg p-4 relative">
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
                                         <span className="font-bold">{comment.author_name}</span>
@@ -126,6 +138,15 @@ function PublicPage() {
                       {new Date(comment.created_at).toLocaleDateString()}
                     </span>
                                     </div>
+                                    {/* Only show delete for admins */}
+                                    {user && user.role === 'admin' && (
+                                        <button
+                                            onClick={() => handleDeleteComment(comment.id)}
+                                            className="text-red-500 hover:text-red-700 text-sm font-medium"
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
                                 </div>
                                 <p className="text-gray-700">{comment.content}</p>
                             </div>

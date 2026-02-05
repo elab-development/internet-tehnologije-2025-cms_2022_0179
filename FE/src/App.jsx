@@ -8,10 +8,10 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CreateSite from './pages/CreateSite';
 import SitePages from './pages/SitePages';
-import CreatePage from './pages/CreatePage';
-import EditPage from './pages/EditPage';
 import PublicSite from './pages/PublicSite';
 import PublicPage from './pages/PublicPage';
+import GrapesJSEditor from "./pages/GrapesJSEditor";
+import AdminPanel from './pages/AdminPanel';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -77,7 +77,7 @@ function App() {
                 path="/pages/new"
                 element={
                     <ProtectedRoute user={user}>
-                        <CreatePage />
+                        <GrapesJSEditor />
                     </ProtectedRoute>
                 }
             />
@@ -86,10 +86,21 @@ function App() {
                 path="/pages/:id/edit"
                 element={
                     <ProtectedRoute user={user}>
-                        <EditPage />
+                        <GrapesJSEditor />
                     </ProtectedRoute>
                 }
             />
+
+            {/* Admin Panel */}
+            <Route
+                path="/admin"
+                element={
+                    <ProtectedRoute user={user}>
+                        <AdminPanel user={user} />
+                    </ProtectedRoute>
+                }
+            />
+
             {/* Public Routes */}
             <Route path="/sites/:slug" element={<PublicSite />} />
             <Route path="/sites/:siteSlug/:pageSlug" element={<PublicPage />} />

@@ -35,11 +35,30 @@ function Navbar({ user, onLogout }) {
                                 >
                                     My Sites
                                 </Link>
+
+                                {/* Admin Panel link - only for admins */}
+                                {user.role === 'admin' && (
+                                    <Link
+                                        to="/admin"
+                                        className={`font-medium transition ${
+                                            isActive('/admin')
+                                                ? 'text-purple-600'
+                                                : 'text-purple-500 hover:text-purple-700'
+                                        }`}
+                                    >
+                                        Admin Panel
+                                    </Link>
+                                )}
+
                                 <div className="flex items-center gap-3">
                   <span className="text-gray-600 text-sm">
                     👤 {user.username}
                   </span>
-                                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                    <span className={`text-xs px-2 py-1 rounded font-semibold ${
+                                        user.role === 'admin'
+                                            ? 'bg-purple-100 text-purple-700'
+                                            : 'bg-gray-100 text-gray-600'
+                                    }`}>
                     {user.role}
                   </span>
                                 </div>
