@@ -62,7 +62,6 @@ function SitePages({ user }) {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
             <div className="max-w-7xl mx-auto px-4">
-                {/* Header */}
                 <div className="mb-8">
                     <Link to="/dashboard" className="text-blue-500 hover:text-blue-700 mb-4 inline-block">
                         ← Back to Dashboard
@@ -70,7 +69,6 @@ function SitePages({ user }) {
                     <div className="flex justify-between items-center mt-4">
                         <div>
                             <h1 className="text-4xl font-bold text-gray-800">Manage Pages</h1>
-                            <p className="text-gray-600 mt-2">Site ID: {siteId}</p>
                         </div>
                         <div className="flex gap-3">
                             <Link
@@ -89,7 +87,6 @@ function SitePages({ user }) {
                     </div>
                 </div>
 
-                {/* Messages */}
                 {success && (
                     <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
                         ✓ {success}
@@ -101,7 +98,6 @@ function SitePages({ user }) {
                     </div>
                 )}
 
-                {/* Pages List */}
                 {pages.length === 0 ? (
                     <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
                         <div className="text-7xl mb-6">📄</div>
@@ -121,7 +117,6 @@ function SitePages({ user }) {
                                 key={page.id}
                                 className="bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden group transform hover:-translate-y-1"
                             >
-                                {/* Status header */}
                                 <div className={`h-24 ${
                                     page.status === 'published'
                                         ? 'bg-gradient-to-br from-green-400 to-blue-500'
@@ -137,7 +132,6 @@ function SitePages({ user }) {
                                     )}
                                 </div>
 
-                                {/* Content */}
                                 <div className="p-6">
                                     <h2 className="text-2xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition">
                                         {page.title}

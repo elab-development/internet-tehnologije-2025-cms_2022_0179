@@ -18,7 +18,6 @@ function PublicPage() {
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
-        // Check if user is logged in
         const savedUser = localStorage.getItem('user');
         if (savedUser) {
             setUser(JSON.parse(savedUser));
@@ -121,7 +120,7 @@ function PublicPage() {
                 />
             </article>
 
-            {/* Comments Section */}
+            {}
             <div className="border-t pt-8">
                 <h2 className="text-2xl font-bold mb-6">Comments ({comments.length})</h2>
 
@@ -138,7 +137,7 @@ function PublicPage() {
                       {new Date(comment.created_at).toLocaleDateString()}
                     </span>
                                     </div>
-                                    {/* Only show delete for admins */}
+                                    {}
                                     {user && user.role === 'admin' && (
                                         <button
                                             onClick={() => handleDeleteComment(comment.id)}

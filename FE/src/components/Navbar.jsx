@@ -36,7 +36,7 @@ function Navbar({ user, onLogout }) {
                                     My Sites
                                 </Link>
 
-                                {/* Admin Panel link - only for admins */}
+                                {}
                                 {user.role === 'admin' && (
                                     <Link
                                         to="/admin"

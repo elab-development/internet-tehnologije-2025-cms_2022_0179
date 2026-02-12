@@ -1,22 +1,35 @@
-const Site = require('../models/Site');
+const pool = require('../config/database');
 
 exports.getAllSites = async (req, res) => {
     try {
-        const sites = await Site.getAllSites();
-        res.json(sites);
+        const result = await pool.query(
+            `SELECT s.*, u.username as owner_name 
+             FROM sites s 
+             LEFT JOIN users u ON s.owner_id = u.id 
+             ORDER BY s.created_at DESC`
+        );
+        res.json(result.rows);
     } catch (error) {
+        console.error('Error fetching sites:', error);
         res.status(500).json({ error: error.message });
     }
 };
 
 exports.getSiteBySlug = async (req, res) => {
     try {
-        const site = await Site.getSiteBySlug(req.params.slug);
-        if (!site) {
+        const { slug } = req.params;
+        const result = await pool.query(
+            'SELECT * FROM sites WHERE slug = $1',
+            [slug]
+        );
+
+        if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Site not found' });
         }
-        res.json(site);
+
+        res.json(result.rows[0]);
     } catch (error) {
+        console.error('Error fetching site:', error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -25,32 +38,46 @@ exports.createSite = async (req, res) => {
     try {
         const { name, slug, template } = req.body;
 
-        const owner_id = req.user.userId;
+        // FIXED: Get owner_id from JWT token
+        const ownerId = req.user.userId;
 
-        const site = await Site.createSite(owner_id, name, slug, template);
-        res.status(201).json(site);
+        console.log('📝 Creating site:', { name, slug, template, ownerId });
+
+        const result = await pool.query(
+            `INSERT INTO sites (name, slug, template, owner_id)
+             VALUES ($1, $2, $3, $4)
+             RETURNING *`,
+            [name, slug, template, ownerId]
+        );
+
+        console.log('Site created:', result.rows[0]);
+        res.status(201).json(result.rows[0]);
     } catch (error) {
+        console.error('Error creating site:', error);
         res.status(500).json({ error: error.message });
     }
 };
 
 exports.updateSite = async (req, res) => {
     try {
-        const { name, template } = req.body;
         const { id } = req.params;
+        const { name, slug, template } = req.body;
 
-        const existingSite = await Site.getSiteById(id);
-        if (!existingSite) {
-            return res.status(404).json({ error: 'Site not found' });
+        const result = await pool.query(
+            `UPDATE sites 
+             SET name = $1, slug = $2, template = $3
+             WHERE id = $4 AND owner_id = $5
+             RETURNING *`,
+            [name, slug, template, id, req.user.userId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Site not found or unauthorized' });
         }
 
-        if (existingSite.owner_id !== req.user.userId && req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Not authorized to update this site' });
-        }
-
-        const site = await Site.updateSite(id, name, template);
-        res.json(site);
+        res.json(result.rows[0]);
     } catch (error) {
+        console.error('Error updating site:', error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -59,18 +86,18 @@ exports.deleteSite = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const existingSite = await Site.getSiteById(id);
-        if (!existingSite) {
-            return res.status(404).json({ error: 'Site not found' });
+        const result = await pool.query(
+            'DELETE FROM sites WHERE id = $1 AND owner_id = $2',
+            [id, req.user.userId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Site not found or unauthorized' });
         }
 
-        if (existingSite.owner_id !== req.user.userId && req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Not authorized to delete this site' });
-        }
-
-        await Site.deleteSite(id);
-        res.json({ message: 'Site deleted' });
+        res.json({ message: 'Site deleted successfully' });
     } catch (error) {
+        console.error('Error deleting site:', error);
         res.status(500).json({ error: error.message });
     }
 };

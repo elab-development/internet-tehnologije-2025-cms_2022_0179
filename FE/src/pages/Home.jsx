@@ -32,7 +32,7 @@ function Home() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-            {/* Hero Section */}
+            {}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
                 <div className="max-w-7xl mx-auto px-4 text-center">
                     <h1 className="text-5xl font-bold mb-4">Explore Amazing Sites</h1>

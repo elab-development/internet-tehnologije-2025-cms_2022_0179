@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
         }
     });
 });
-
+const { specs, swaggerUi } = require('./config/swagger');
 const authRoutes = require('./routes/auth');
 const siteRoutes = require('./routes/sites');
 const pageRoutes = require('./routes/pages');
@@ -45,8 +45,15 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/admin', adminRoutes);
 
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Simple CMS API Docs'
+}));
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Swagger docs available at http://localhost:${PORT}/api-docs`);
   console.log('Available endpoints:');
   console.log('  - /api/auth');
   console.log('  - /api/sites');
