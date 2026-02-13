@@ -1,14 +1,31 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { sitesAPI } from '../utils/api';
+import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    PointElement,
+    LineElement,
+    ArcElement,
+    Title,
+    Tooltip,
+    Legend
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend);
 
 function Dashboard({ user }) {
     const [sites, setSites] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [stats, setStats] = useState(null);
 
     useEffect(() => {
         loadSites();
+        fetchStats();
     }, []);
 
     const loadSites = async () => {
@@ -23,10 +40,25 @@ function Dashboard({ user }) {
         }
     };
 
+    const fetchStats = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/stats', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setStats(data);
+            }
+        } catch (err) {
+            console.error('Error loading stats:', err);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="text-xl text-gray-600">Loading your sites...</div>
+                <div className="text-xl text-gray-600">Loading...</div>
             </div>
         );
     }
@@ -56,8 +88,9 @@ function Dashboard({ user }) {
                     </div>
                 )}
 
+                {/* SITES SECTION */}
                 {sites.length === 0 ? (
-                    <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                    <div className="bg-white rounded-2xl shadow-lg p-12 text-center mb-12">
                         <div className="text-7xl mb-6">🌐</div>
                         <h3 className="text-2xl font-bold text-gray-700 mb-2">No sites yet</h3>
                         <p className="text-gray-600 mb-6">Create your first site to get started!</p>
@@ -69,7 +102,7 @@ function Dashboard({ user }) {
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                         {sites.map((site) => (
                             <div
                                 key={site.id}
@@ -82,9 +115,9 @@ function Dashboard({ user }) {
                                         : 'bg-gradient-to-br from-purple-400 to-pink-500'
                                 } relative`}>
                                     <div className="absolute top-4 right-4">
-                    <span className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold px-3 py-1 rounded-full capitalize">
-                      {site.template}
-                    </span>
+                                        <span className="bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold px-3 py-1 rounded-full capitalize">
+                                            {site.template}
+                                        </span>
                                     </div>
                                 </div>
 
@@ -115,6 +148,135 @@ function Dashboard({ user }) {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {/* STATISTICS SECTION */}
+                {stats && (
+                    <div className="mt-12">
+                        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                            <h2 className="text-3xl font-bold text-gray-800 mb-2">📊 Statistics</h2>
+                            <p className="text-gray-600">Analytics and insights for your content</p>
+                        </div>
+
+                        {/* Summary Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+                                <p className="text-sm text-gray-600 mb-1">Total Pages</p>
+                                <p className="text-3xl font-bold text-blue-600">
+                                    {stats.statusBreakdown.draft + stats.statusBreakdown.published}
+                                </p>
+                            </div>
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+                                <p className="text-sm text-gray-600 mb-1">Published</p>
+                                <p className="text-3xl font-bold text-green-600">{stats.statusBreakdown.published}</p>
+                            </div>
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+                                <p className="text-sm text-gray-600 mb-1">Drafts</p>
+                                <p className="text-3xl font-bold text-yellow-600">{stats.statusBreakdown.draft}</p>
+                            </div>
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+                                <p className="text-sm text-gray-600 mb-1">Total Sites</p>
+                                <p className="text-3xl font-bold text-purple-600">{stats.pagesBySite.length}</p>
+                            </div>
+                        </div>
+
+                        {/* Charts */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+                                <h3 className="text-lg font-bold mb-4 text-gray-800">Pages per Site</h3>
+                                <div style={{height: '300px'}}>
+                                    <Bar
+                                        data={{
+                                            labels: stats.pagesBySite.map(s => s.site_name),
+                                            datasets: [{
+                                                label: 'Number of Pages',
+                                                data: stats.pagesBySite.map(s => parseInt(s.page_count)),
+                                                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                                                borderColor: 'rgba(59, 130, 246, 1)',
+                                                borderWidth: 2
+                                            }]
+                                        }}
+                                        options={{
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: { legend: { position: 'top' } }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+                                <h3 className="text-lg font-bold mb-4 text-gray-800">Pages Over Time</h3>
+                                <div style={{height: '300px'}}>
+                                    <Line
+                                        data={{
+                                            labels: stats.pagesOverTime.map(m => m.month),
+                                            datasets: [{
+                                                label: 'Pages Created',
+                                                data: stats.pagesOverTime.map(m => parseInt(m.count)),
+                                                borderColor: 'rgba(16, 185, 129, 1)',
+                                                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                                tension: 0.4,
+                                                fill: true
+                                            }]
+                                        }}
+                                        options={{
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: { legend: { position: 'top' } }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+                                <h3 className="text-lg font-bold mb-4 text-gray-800">Draft vs Published</h3>
+                                <div style={{height: '300px'}}>
+                                    <Pie
+                                        data={{
+                                            labels: ['Draft', 'Published'],
+                                            datasets: [{
+                                                data: [stats.statusBreakdown.draft, stats.statusBreakdown.published],
+                                                backgroundColor: ['rgba(251, 191, 36, 0.8)', 'rgba(34, 197, 94, 0.8)'],
+                                                borderColor: ['rgba(251, 191, 36, 1)', 'rgba(34, 197, 94, 1)'],
+                                                borderWidth: 2
+                                            }]
+                                        }}
+                                        options={{
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: { legend: { position: 'top' } }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+                                <h3 className="text-lg font-bold mb-4 text-gray-800">Page Types</h3>
+                                <div style={{height: '300px'}}>
+                                    <Doughnut
+                                        data={{
+                                            labels: stats.pageTypes.map(t => t.page_type),
+                                            datasets: [{
+                                                data: stats.pageTypes.map(t => parseInt(t.count)),
+                                                backgroundColor: [
+                                                    'rgba(139, 92, 246, 0.8)',
+                                                    'rgba(236, 72, 153, 0.8)',
+                                                    'rgba(59, 130, 246, 0.8)',
+                                                    'rgba(16, 185, 129, 0.8)'
+                                                ]
+                                            }]
+                                        }}
+                                        options={{
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: { legend: { position: 'top' } }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

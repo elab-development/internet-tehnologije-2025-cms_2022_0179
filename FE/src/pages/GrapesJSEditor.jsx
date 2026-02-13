@@ -172,7 +172,7 @@ function GrapesJSEditor() {
         const grapesEditor = grapesjs.init({
             container: editorRef.current,
             fromElement: false,
-            height: '60vh',
+            height: 'calc(100vh - 120px)',
             width: 'auto',
             storageManager: false,
             plugins: [gjsPresetWebpage],
@@ -181,7 +181,6 @@ function GrapesJSEditor() {
             canvas: { scripts: ['https://cdn.tailwindcss.com'] }
         });
 
-        // Load existing media
         media.forEach(item => grapesEditor.AssetManager.add(item.file_path));
 
         const bm = grapesEditor.BlockManager;
@@ -194,7 +193,6 @@ function GrapesJSEditor() {
         bm.add('card', { label: 'Card', category: 'Components', content: '<div class="max-w-sm rounded-lg shadow-lg bg-white"><img src="https://picsum.photos/400/200" class="w-full"><div class="p-6"><h3 class="font-bold text-xl mb-2">Title</h3><p class="text-gray-700 mb-4">Description</p><a href="#" class="bg-blue-500 text-white px-4 py-2 rounded">Read More</a></div></div>' });
         bm.add('picsum', { label: 'Random Photo', category: 'External API', content: `<img src="https://picsum.photos/800/600?random=${Math.random()}" class="w-full rounded" />` });
 
-        // FIXED: Full URL with site slug
         const opts = [
             { value: '#', name: '-- Select Page --' },
             ...pages.map(p => ({
@@ -273,6 +271,7 @@ function GrapesJSEditor() {
 
     return (
         <div className="h-screen flex flex-col">
+            {/* Header */}
             <div className="bg-white border-b px-4 py-3">
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex-1 mr-4">
@@ -297,29 +296,42 @@ function GrapesJSEditor() {
                 {error && <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-sm">⚠️ {error}</div>}
             </div>
 
-            <div ref={editorRef} />
+            {/* Main Content: Gallery LEFT + Editor RIGHT */}
+            <div className="flex flex-1 overflow-hidden">
+                {/* MEDIA GALLERY - LEFT SIDEBAR */}
+                <div className="w-80 bg-gray-50 border-r p-4 overflow-y-auto">
+                    <div className="mb-4">
+                        <label className="block w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-purple-600 hover:to-purple-700 transition text-center font-bold">
+                            {uploading ? 'Uploading...' : '📤 Upload Images'}
+                            <input type="file" accept="image/*" multiple onChange={handleUpload} className="hidden" disabled={uploading} />
+                        </label>
+                    </div>
 
-            {/* MEDIA GALLERY */}
-            <div className="bg-gray-50 border-t p-4" style={{height: 'calc(40vh - 120px)', overflowY: 'auto'}}>
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold">Media Gallery</h3>
-                    <label className="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:from-purple-600 hover:to-purple-700 transition">
-                        {uploading ? 'Uploading...' : '📤 Upload Images'}
-                        <input type="file" accept="image/*" multiple onChange={handleUpload} className="hidden" disabled={uploading} />
-                    </label>
-                </div>
-                <div className="grid grid-cols-4 gap-4">
-                    {media.map(item => (
-                        <div key={item.id} className="relative group cursor-pointer" onClick={() => insertImageToEditor(item.file_path)}>
-                            <img src={item.file_path} alt={item.filename} className="w-full h-32 object-cover rounded border-2 border-gray-200 group-hover:border-purple-500 transition" />
-                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition flex items-center justify-center">
-                                <span className="text-white opacity-0 group-hover:opacity-100 text-sm font-bold">Click to Insert</span>
+                    <h3 className="text-sm font-bold text-gray-700 mb-3">Your Images ({media.length})</h3>
+
+                    <div className="space-y-2">
+                        {media.map(item => (
+                            <div key={item.id} className="relative group cursor-pointer" onClick={() => insertImageToEditor(item.file_path)}>
+                                <img src={item.file_path} alt={item.filename} className="w-full h-40 object-cover rounded border-2 border-gray-200 group-hover:border-purple-500 transition" />
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition flex items-center justify-center rounded">
+                                    <span className="text-white opacity-0 group-hover:opacity-100 text-sm font-bold">Click to Insert</span>
+                                </div>
+                                <p className="text-xs text-gray-600 mt-1 truncate">{item.filename}</p>
                             </div>
-                        </div>
-                    ))}
-                    {media.length === 0 && !uploading && (
-                        <div className="col-span-4 text-center text-gray-500 py-8">No images yet. Upload some!</div>
-                    )}
+                        ))}
+                        {media.length === 0 && !uploading && (
+                            <div className="text-center text-gray-500 py-8 text-sm">
+                                <p className="mb-2">📸</p>
+                                <p>No images yet.</p>
+                                <p>Upload your first image!</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* EDITOR - RIGHT SIDE */}
+                <div className="flex-1">
+                    <div ref={editorRef} style={{height: '100%'}} />
                 </div>
             </div>
         </div>

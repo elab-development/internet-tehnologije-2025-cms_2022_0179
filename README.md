@@ -164,6 +164,9 @@ Full API documentation: http://localhost:5000/api-docs
 - JWT authentication
 - Bcrypt password hashing
 - CORS protection
+- SQL Injection
+- XSS (Cross-Site Scripting)
+- Helmet.js
 - Role-based authorization
 
 ---

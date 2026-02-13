@@ -1,14 +1,28 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const helmet = require('helmet');
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }))
-
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],  // Za Swagger CSS
+            scriptSrc: ["'self'", "'unsafe-inline'"], // Za Swagger JS
+            imgSrc: ["'self'", "data:", "https:"]     // Za Cloudinary slike
+        }
+    }
+}));
 app.get('/', (req, res) => {
     res.json({
         message: 'CMS Backend API is running!',
@@ -18,7 +32,8 @@ app.get('/', (req, res) => {
             pages: '/api/pages',
             media: '/api/media',
             comments: '/api/comments',
-            admin: '/api/admin'
+            admin: '/api/admin',
+            stats: '/api/stats'
         }
     });
 });
@@ -29,6 +44,8 @@ const pageRoutes = require('./routes/pages');
 const mediaRoutes = require('./routes/media');
 const commentRoutes = require('./routes/comments');
 const adminRoutes = require('./routes/admin');
+const statsRoutes = require('./routes/stats');
+
 
 console.log('Auth:', typeof authRoutes);
 console.log('Sites:', typeof siteRoutes);
@@ -36,7 +53,7 @@ console.log('Pages:', typeof pageRoutes);
 console.log('Media:', typeof mediaRoutes);
 console.log('Comments:', typeof commentRoutes);
 console.log('Admin:', typeof adminRoutes);
-
+console.log('Stats:', typeof statsRoutes);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/sites', siteRoutes);
@@ -44,6 +61,7 @@ app.use('/api/pages', pageRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/stats', statsRoutes);
 
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
@@ -61,4 +79,5 @@ app.listen(PORT, () => {
   console.log('  - /api/media');
   console.log('  - /api/comments');
   console.log('  - /api/admin');
+  console.log('  - /api/stats');
 });
