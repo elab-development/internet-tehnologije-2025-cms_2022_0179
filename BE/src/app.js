@@ -40,7 +40,7 @@ app.get('/', (req, res) => {
         }
     });
 });
-
+//rute
 const { specs, swaggerUi } = require('./config/swagger');
 const authRoutes = require('./routes/auth');
 const siteRoutes = require('./routes/sites');
