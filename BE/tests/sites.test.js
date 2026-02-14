@@ -16,6 +16,27 @@ describe('Sites API Tests', () => {
     let userId;
 
     beforeAll(async () => {
+        await pool.query(`
+            CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+            CREATE TABLE IF NOT EXISTS users (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                username VARCHAR(50) UNIQUE NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                role VARCHAR(20) NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+            );
+            CREATE TABLE IF NOT EXISTS sites (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                name VARCHAR(100) NOT NULL,
+                slug VARCHAR(50) UNIQUE NOT NULL,
+                template VARCHAR(30) NOT NULL,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+            );
+        `);
+        await pool.query('TRUNCATE TABLE users CASCADE');
+
         const email = `sitetest${Date.now()}@example.com`;
         const response = await request(app)
             .post('/api/auth/register')

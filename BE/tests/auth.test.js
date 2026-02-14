@@ -14,6 +14,16 @@ const pool = require('../src/config/database');
 describe('Auth API Tests', () => {
 
     beforeAll(async () => {
+        await pool.query(`
+        CREATE TABLE IF NOT EXISTS users (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            username VARCHAR(50) UNIQUE NOT NULL,
+            email VARCHAR(100) UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            role VARCHAR(20) NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+            );
+        `);
         await pool.query('TRUNCATE TABLE users CASCADE');
     });
 
