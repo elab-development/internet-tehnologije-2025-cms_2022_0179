@@ -1,5 +1,5 @@
 process.env.NODE_ENV = 'test';
-process.env.DB_HOST = 'localhost';
+process.env.DB_HOST = '127.0.0.1';
 process.env.DB_PORT = '5433';
 process.env.DB_NAME = 'cms_test';
 process.env.DB_USER = 'postgres';
@@ -12,18 +12,25 @@ const app = require('../src/app');
 const pool = require('../src/config/database');
 
 describe('Auth API Tests', () => {
+
+    beforeAll(async () => {
+        await pool.query('TRUNCATE TABLE users CASCADE');
+    });
+
     afterAll(async () => {
         await pool.end();
     });
 
     describe('POST /api/auth/register', () => {
         it('should register a new user', async () => {
-            const randomEmail = `test${Date.now()}@example.com`;
+            const suffix = Date.now();
+            const randomEmail = `test${suffix}@example.com`;
+            const randomUser = `user_${suffix}`;
 
             const response = await request(app)
                 .post('/api/auth/register')
                 .send({
-                    username: 'testuser',
+                    username: randomUser,
                     email: randomEmail,
                     password: 'password123',
                     role: 'author'
@@ -36,12 +43,14 @@ describe('Auth API Tests', () => {
         });
 
         it('should return 400 if email already exists', async () => {
-            const email = `duplicate${Date.now()}@example.com`;
+            const suffix = Date.now();
+            const email = `duplicate${suffix}@example.com`;
 
+            // Prva registracija
             await request(app)
                 .post('/api/auth/register')
                 .send({
-                    username: 'user1',
+                    username: `user1_${suffix}`,
                     email: email,
                     password: 'pass123',
                     role: 'author'
@@ -50,7 +59,7 @@ describe('Auth API Tests', () => {
             const response = await request(app)
                 .post('/api/auth/register')
                 .send({
-                    username: 'user2',
+                    username: `user2_${suffix}`,
                     email: email,
                     password: 'pass456',
                     role: 'author'
@@ -62,13 +71,14 @@ describe('Auth API Tests', () => {
 
     describe('POST /api/auth/login', () => {
         it('should login with valid credentials', async () => {
-            const email = `login${Date.now()}@example.com`;
+            const suffix = Date.now();
+            const email = `login${suffix}@example.com`;
             const password = 'testpass123';
 
             await request(app)
                 .post('/api/auth/register')
                 .send({
-                    username: 'loginuser',
+                    username: `loginuser_${suffix}`,
                     email: email,
                     password: password,
                     role: 'author'
@@ -101,12 +111,13 @@ describe('Auth API Tests', () => {
 
     describe('GET /api/auth/me', () => {
         it('should return user info with valid token', async () => {
-            const email = `me${Date.now()}@example.com`;
+            const suffix = Date.now();
+            const email = `me${suffix}@example.com`;
 
             const registerRes = await request(app)
                 .post('/api/auth/register')
                 .send({
-                    username: 'meuser',
+                    username: `meuser_${suffix}`,
                     email: email,
                     password: 'pass123',
                     role: 'author'
