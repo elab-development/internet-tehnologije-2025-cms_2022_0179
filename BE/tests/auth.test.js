@@ -1,0 +1,132 @@
+process.env.NODE_ENV = 'test';
+process.env.DB_HOST = 'localhost';
+process.env.DB_PORT = '5433';
+process.env.DB_NAME = 'cms_test';
+process.env.DB_USER = 'postgres';
+process.env.DB_PASSWORD = 'postgres';
+process.env.JWT_SECRET = 'test_secret_key';
+delete process.env.DATABASE_URL;
+
+const request = require('supertest');
+const app = require('../src/app');
+const pool = require('../src/config/database');
+
+describe('Auth API Tests', () => {
+    afterAll(async () => {
+        await pool.end();
+    });
+
+    describe('POST /api/auth/register', () => {
+        it('should register a new user', async () => {
+            const randomEmail = `test${Date.now()}@example.com`;
+
+            const response = await request(app)
+                .post('/api/auth/register')
+                .send({
+                    username: 'testuser',
+                    email: randomEmail,
+                    password: 'password123',
+                    role: 'author'
+                });
+
+            expect(response.status).toBe(201);
+            expect(response.body).toHaveProperty('token');
+            expect(response.body).toHaveProperty('user');
+            expect(response.body.user).toHaveProperty('email', randomEmail);
+        });
+
+        it('should return 400 if email already exists', async () => {
+            const email = `duplicate${Date.now()}@example.com`;
+
+            await request(app)
+                .post('/api/auth/register')
+                .send({
+                    username: 'user1',
+                    email: email,
+                    password: 'pass123',
+                    role: 'author'
+                });
+
+            const response = await request(app)
+                .post('/api/auth/register')
+                .send({
+                    username: 'user2',
+                    email: email,
+                    password: 'pass456',
+                    role: 'author'
+                });
+
+            expect(response.status).toBe(400);
+        });
+    });
+
+    describe('POST /api/auth/login', () => {
+        it('should login with valid credentials', async () => {
+            const email = `login${Date.now()}@example.com`;
+            const password = 'testpass123';
+
+            await request(app)
+                .post('/api/auth/register')
+                .send({
+                    username: 'loginuser',
+                    email: email,
+                    password: password,
+                    role: 'author'
+                });
+
+            const response = await request(app)
+                .post('/api/auth/login')
+                .send({
+                    email: email,
+                    password: password
+                });
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('token');
+            expect(response.body).toHaveProperty('user');
+            expect(response.body.user).toHaveProperty('email', email);
+        });
+
+        it('should return 401 with invalid password', async () => {
+            const response = await request(app)
+                .post('/api/auth/login')
+                .send({
+                    email: 'nonexistent@example.com',
+                    password: 'wrongpassword'
+                });
+
+            expect(response.status).toBe(401);
+        });
+    });
+
+    describe('GET /api/auth/me', () => {
+        it('should return user info with valid token', async () => {
+            const email = `me${Date.now()}@example.com`;
+
+            const registerRes = await request(app)
+                .post('/api/auth/register')
+                .send({
+                    username: 'meuser',
+                    email: email,
+                    password: 'pass123',
+                    role: 'author'
+                });
+
+            const token = registerRes.body.token;
+
+            const response = await request(app)
+                .get('/api/auth/me')
+                .set('Authorization', `Bearer ${token}`);
+
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('email', email);
+        });
+
+        it('should return 401 without token', async () => {
+            const response = await request(app)
+                .get('/api/auth/me');
+
+            expect(response.status).toBe(401);
+        });
+    });
+});
