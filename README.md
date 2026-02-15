@@ -68,24 +68,28 @@ Open your browser:
 
 ```
 cms-project/
-├── BE/                      # Backend (Express.js)
-│   ├── config/              # Database & Cloudinary config
-│   ├── controllers/         # Business logic
-│   ├── models/              # Database models
-│   ├── routes/              # API routes
-│   ├── middleware/          # Auth & validation
-│   ├── migrations/          # Database migrations
-│   └── index.js             # Entry point
-│
-├── FE/                      # Frontend (React + Vite)
+├── .github/workflows/ci-cd.yml  # GitHub Actions pipeline
+├── BE/                           # Backend
 │   ├── src/
-│   │   ├── components/      # Reusable components
-│   │   ├── pages/           # Page components
-│   │   ├── utils/           # API helpers
-│   │   └── App.jsx          # Main app
+│   │   ├── config/               # Database, Cloudinary, Swagger
+│   │   ├── controllers/          # Business logic
+│   │   ├── models/               # Data access layer
+│   │   ├── routes/               # API endpoints
+│   │   ├── middleware/           # JWT verification
+│   │   ├── app.js                # Express app
+│   │   └── server.js             # Entry point
+│   ├── tests/                    # Jest tests (13)
+│   ├── Dockerfile
 │   └── package.json
-│
-└── docker-compose.yml       # Docker configuration
+├── FE/                           # Frontend
+│   ├── src/
+│   │   ├── components/           # Navbar, ProtectedRoute
+│   │   ├── pages/                # Login, Dashboard, Editor, etc.
+│   │   └── utils/                # API helper functions
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml            # Service orchestration
+└── README.md
 ```
 
 ---
@@ -107,6 +111,16 @@ cms-project/
 - ✅ Manage all users (view, delete)
 - ✅ Delete any site
 - ✅ Delete comments
+
+---
+## 📊 External APIs
+
+The project uses **4 external APIs**:
+
+1. **Cloudinary** - Cloud storage for production images
+2. **GrapesJS** - WYSIWYG page builder framework
+3. **Picsum Photos** - Random images generator for design
+4. **Chart.js** - Data visualization on dashboard
 
 ---
 
@@ -171,25 +185,110 @@ Full API documentation: http://localhost:5000/api-docs
 
 ---
 
-## 📚 Technologies Used
+## 🛠️ Technologies
 
-### Backend:
-- Node.js + Express.js
-- PostgreSQL
-- JWT (jsonwebtoken)
-- Bcrypt
-- Cloudinary
+### Backend
+- **Node.js** + **Express.js** - REST API server
+- **PostgreSQL** - Relational database
+- **JWT** - User authentication
+- **Bcrypt** - Password hashing
+- **Cloudinary** - Cloud storage for images
+- **Swagger** - API documentation
+- **Helmet.js** - Security headers
+- **Jest & Supertest** - Automated testing (13 tests)
 
-### Frontend:
-- React 18
-- Vite
-- React Router
-- Tailwind CSS
-- GrapesJS (drag & drop editor)
+### Frontend
+- **React 18** - UI library
+- **Vite** - Build tool
+- **React Router** - Client-side routing
+- **Tailwind CSS** - Styling framework
+- **GrapesJS** - WYSIWYG page builder
+- **Chart.js** - Data visualization
 
-### DevOps:
-- Docker
-- Docker Compose
+### DevOps
+- **Docker & Docker Compose** - Containerization
+- **GitHub Actions** - CI/CD pipeline
+
+---
+
+## 🌿 Git Strategy
+
+The project follows **Git Flow** strategy with a clear branch hierarchy.
+
+### Main Branches:
+
+- **`main`** - Stable production version
+- **`develop`** - Integration branch for development
+
+### Feature Branches:
+
+- **`feature/UI`** - GrapesJS page builder integration
+- **`feature/security+chart.js`** - Helmet, Cors + Chart.js visualization
+- **`feature/externAPI`** - Cloudinary cloud storage integration
+- **`feature/tests+pipeline`** - Jest + Supertest automated testing + GitHub pipeline
+
+### Git Flow Diagram:
+
+```
+main (production)
+  ↑
+  └── develop (integration)
+        ↑
+        ├── feature/UI
+        ├── feature/security+chart.js
+        ├── feature/externAPI
+        └── feature/tests+pipeline
+```
+
+### Branch Commands:
+
+```bash
+# List all branches
+git branch -a
+
+# Switch to a branch
+git checkout feature/UI
+
+# Create new feature branch
+git checkout -b feature/new-feature
+```
+
+---
+
+## 🧪 Testing
+
+### Automated Tests (Jest + Supertest)
+
+The project contains **13 integration tests** divided into 3 suites:
+
+- **Auth API Tests** (6 tests) - Registration, login, JWT verification
+- **Sites API Tests** (4 tests) - CRUD operations for sites
+- **Pages API Tests** (3 tests) - CRUD operations for pages
+
+### Run Tests:
+
+```bash
+cd BE
+npm test
+```
+
+**Result:**
+```
+Test Suites: 3 passed, 3 total
+Tests:       13 passed, 13 total
+Time:        5.534 s
+```
+
+### CI/CD Pipeline
+
+GitHub Actions automatically runs tests on every push:
+
+```yaml
+# .github/workflows/ci-cd.yml
+- Run tests (PostgreSQL in Docker container)
+- Build Docker images (Backend + Frontend)
+- Push to Docker Hub (only if tests pass)
+```
 
 ---
 
